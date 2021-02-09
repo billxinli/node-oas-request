@@ -27,24 +27,28 @@ test('per method overrides security values', async (assert) => {
       port: '',
       host: 'example.com',
       method: 'get',
-      path: '/method-specific-security?API-Key=per-method-override-query',
+      path: '/method-specific-security?query_key=per-method-override-query',
       headers: {
-        'X-API-KEY': 'per-method-override-header'
+        header_key: 'per-method-override-header'
       },
       body: undefined
     })
   })
 
   const API = client(globalSecuritySpec)
-  const api = new API('http://example.com', { secret: 'secret' })
+  const api = new API('http://example.com', {
+    security: {
+      ApiKeyAuthHeader: 'secret',
+      ApiKeyAuthQuery: 'secret'
+    }
+  })
 
   await api.testMethodSpecific({
-    secret: 'method-secret',
     query: {
-      'API-Key': 'per-method-override-query'
+      query_key: 'per-method-override-query'
     },
     headers: {
-      'X-API-KEY': 'per-method-override-header'
+      header_key: 'per-method-override-header'
     }
   })
 })
@@ -60,7 +64,7 @@ test('global security is applied', async (assert) => {
       method: 'get',
       path: '/global-security',
       headers: {
-        'X-API-KEY': [
+        header_key: [
           'secret'
         ]
       },
@@ -69,7 +73,12 @@ test('global security is applied', async (assert) => {
   })
 
   const API = client(globalSecuritySpec)
-  const api = new API('http://example.com', { secret: 'secret' })
+  const api = new API('http://example.com', {
+    security: {
+      ApiKeyAuthHeader: 'secret',
+      ApiKeyAuthQuery: 'secret'
+    }
+  })
 
   await api.testGlobal()
 })
@@ -83,9 +92,9 @@ test('global security with method security is applied', async (assert) => {
       port: '',
       host: 'example.com',
       method: 'get',
-      path: '/method-specific-security?API-Key=secret',
+      path: '/method-specific-security?query_key=secret',
       headers: {
-        'X-API-KEY': [
+        header_key: [
           'secret'
         ]
       },
@@ -94,7 +103,12 @@ test('global security with method security is applied', async (assert) => {
   })
 
   const API = client(globalSecuritySpec)
-  const api = new API('http://example.com', { secret: 'secret' })
+  const api = new API('http://example.com', {
+    security: {
+      ApiKeyAuthHeader: 'secret',
+      ApiKeyAuthQuery: 'secret'
+    }
+  })
 
   await api.testMethodSpecific()
 })
@@ -108,9 +122,9 @@ test('global security with method security override', async (assert) => {
       port: '',
       host: 'example.com',
       method: 'get',
-      path: '/method-specific-security?API-Key=method-secret',
+      path: '/method-specific-security?query_key=method-secret',
       headers: {
-        'X-API-KEY': [
+        header_key: [
           'method-secret'
         ]
       },
@@ -119,9 +133,19 @@ test('global security with method security override', async (assert) => {
   })
 
   const API = client(globalSecuritySpec)
-  const api = new API('http://example.com', { secret: 'secret' })
+  const api = new API('http://example.com', {
+    security: {
+      ApiKeyAuthHeader: 'secret',
+      ApiKeyAuthQuery: 'secret'
+    }
+  })
 
-  await api.testMethodSpecific({ secret: 'method-secret' })
+  await api.testMethodSpecific({
+    security: {
+      ApiKeyAuthHeader: 'method-secret',
+      ApiKeyAuthQuery: 'method-secret'
+    }
+  })
 })
 
 test('method security is applied', async (assert) => {
@@ -140,7 +164,14 @@ test('method security is applied', async (assert) => {
   })
 
   const API = client(methodSecuritySpec)
-  const api = new API('http://example.com', { secret: 'secret' })
+  const api = new API('http://example.com', {
+    security: {
+      BearerAuthJWT: {
+        secret: 'secret',
+        payload: {}
+      }
+    }
+  })
 
   await api.testGlobal()
 })
@@ -158,7 +189,14 @@ test('method security with method security is applied', async (assert) => {
   })
 
   const API = client(methodSecuritySpec)
-  const api = new API('http://example.com', { secret: 'secret' })
+  const api = new API('http://example.com', {
+    security: {
+      BearerAuthJWT: {
+        secret: 'secret',
+        payload: {}
+      }
+    }
+  })
 
   await api.testMethodSpecific()
 })
@@ -179,16 +217,35 @@ test('method security with method security override', async (assert) => {
   })
 
   const API = client(methodSecuritySpec)
-  const api = new API('http://example.com', { secret: 'secret' })
+  const api = new API('http://example.com', {
+    security: {
+      BearerAuthJWT: {
+        secret: 'secret',
+        payload: {}
+      }
+    }
+  })
 
-  await api.testMethodSpecific({ secret: 'another-secret', jwt: { exp: '5m' } })
+  await api.testMethodSpecific({
+    security: {
+      BearerAuthJWT: {
+        secret: 'another-secret',
+        exp: '5m',
+        payload: {}
+      }
+    }
+  })
 })
 
 test('missing security raise error', async (assert) => {
   assert.plan(1)
 
   const API = client(missingSecuritySpec)
-  const api = new API('http://example.com', { secret: 'secret' })
+  const api = new API('http://example.com', {
+    security: {
+      MissingSecurityMethod: 'secret'
+    }
+  })
 
   try {
     await api.testGlobal()

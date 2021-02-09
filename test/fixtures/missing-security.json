@@ -42,12 +42,12 @@
       "ApiKeyAuthHeader": {
         "type": "apiKey",
         "in": "header",
-        "name": "X-API-Key"
+        "name": "header_key"
       },
       "ApiKeyAuthQuery": {
         "type": "apiKey",
         "in": "query",
-        "name": "API-Key"
+        "name": "query_key"
       }
     },
     "schemas": {

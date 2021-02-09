@@ -13,12 +13,12 @@ test('simple case', async (assert) => {
     ApiKeyAuthHeader: {
       type: 'apiKey',
       in: 'header',
-      name: 'X-API-KEY'
+      name: 'header_key'
     },
     ApiKeyAuthQuery: {
       type: 'apiKey',
       in: 'query',
-      name: 'X-API-KEY'
+      name: 'query_key'
     },
     BearerAuthJWT: {
       type: 'http',
@@ -36,19 +36,18 @@ test('simple case', async (assert) => {
         ApiKeyAuthQuery: []
       },
       {
-        secret: mockSecret,
-        jwt: {
-          exp: '5m'
-        }
+        BearerAuth: mockSecret,
+        ApiKeyAuthHeader: mockSecret,
+        ApiKeyAuthQuery: mockSecret
       })
 
   assert.deepEqual(result, {
     headers: {
-      authorization: [`Bearer ${mockSecret}`],
-      'X-API-KEY': [mockSecret]
+      header_key: [mockSecret],
+      authorization: [`Bearer ${mockSecret}`]
     },
     queries: {
-      'X-API-KEY': [mockSecret]
+      query_key: [mockSecret]
     }
   })
 })
@@ -60,22 +59,22 @@ test('api key with multiple values case', async (assert) => {
     ApiKeyAuthHeader: {
       type: 'apiKey',
       in: 'header',
-      name: 'X-API-KEY'
+      name: 'header_key'
     },
     ApiKeyAuthQuery: {
       type: 'apiKey',
       in: 'query',
-      name: 'X-API-KEY'
+      name: 'query_key'
     },
     ApiKeyAuthHeaderAnother: {
       type: 'apiKey',
       in: 'header',
-      name: 'X-API-KEY'
+      name: 'header_key'
     },
     ApiKeyAuthQueryAnother: {
       type: 'apiKey',
       in: 'query',
-      name: 'X-API-KEY'
+      name: 'query_key'
     }
   }
 
@@ -89,18 +88,18 @@ test('api key with multiple values case', async (assert) => {
         ApiKeyAuthQueryAnother: []
       },
       {
-        secret: mockSecret,
-        jwt: {
-          exp: '5m'
-        }
+        ApiKeyAuthHeader: mockSecret,
+        ApiKeyAuthQuery: mockSecret,
+        ApiKeyAuthHeaderAnother: mockSecret,
+        ApiKeyAuthQueryAnother: mockSecret
       })
 
   assert.deepEqual(result, {
     headers: {
-      'X-API-KEY': [mockSecret, mockSecret]
+      header_key: [mockSecret, mockSecret]
     },
     queries: {
-      'X-API-KEY': [mockSecret, mockSecret]
+      query_key: [mockSecret, mockSecret]
     }
   })
 })
@@ -128,9 +127,11 @@ test('bearer with multiple values case', async (assert) => {
         BearerAuthJWT: []
       },
       {
-        secret: mockSecret,
-        jwt: {
-          exp: '5m'
+        BearerAuth: mockSecret,
+        BearerAuthJWT: {
+          secret: mockSecret,
+          exp: '5m',
+          payload: {}
         }
       })
 
@@ -156,7 +157,7 @@ test('http basic is not supported', async (assert) => {
         BasicAuth: []
       },
       {
-        secret: mockSecret
+        BasicAuth: mockSecret
       })
   } catch (err) {
     assert.equal(err.message, 'basic scheme type not implemented.')
@@ -180,7 +181,7 @@ test('oauth2 is not supported', async (assert) => {
         OauthAuth: []
       },
       {
-        secret: mockSecret
+        OauthAuth: mockSecret
       })
   } catch (err) {
     assert.equal(err.message, 'oauth2 type not implemented.')
@@ -204,7 +205,7 @@ test('openIdConnect is not supported', async (assert) => {
         OpenIdConnectAuth: []
       },
       {
-        secret: mockSecret
+        OpenIdConnectAuth: mockSecret
       })
   } catch (err) {
     assert.equal(err.message, 'openIdConnect type not implemented.')
@@ -229,7 +230,7 @@ test('apiKey in cookie is not supported', async (assert) => {
         CookieAuth: []
       },
       {
-        secret: mockSecret
+        CookieAuth: mockSecret
       })
   } catch (err) {
     assert.equal(err.message, 'cookie in type not implemented.')
@@ -255,9 +256,10 @@ test('jwt with invalid options', async (assert) => {
         BearerAuthJWT: []
       },
       {
-        secret: mockSecret,
-        jwt: {
-          exp: 'some invalid value'
+        BearerAuthJWT: {
+          secret: mockSecret,
+          exp: 'some invalid value',
+          payload: {}
         }
       })
   } catch (err) {
@@ -285,9 +287,10 @@ test('jwt with exp time', async (assert) => {
         BearerAuthJWT: []
       },
       {
-        secret: mockSecret,
-        jwt: {
-          exp: '5m'
+        BearerAuthJWT: {
+          secret: mockSecret,
+          exp: '5m',
+          payload: {}
         }
       })
 
@@ -318,8 +321,10 @@ test('jwt without exp time', async (assert) => {
         BearerAuthJWT: []
       },
       {
-        secret: mockSecret,
-        jwt: {}
+        BearerAuthJWT: {
+          secret: mockSecret,
+          payload: {}
+        }
       })
 
   const jwtToken = result.headers.authorization[0].split('Bearer ')[1]
@@ -348,7 +353,10 @@ test('jwt without options', async (assert) => {
         BearerAuthJWT: []
       },
       {
-        secret: mockSecret
+        BearerAuthJWT: {
+          secret: mockSecret,
+          payload: {}
+        }
       })
 
   const jwtToken = result.headers.authorization[0].split('Bearer ')[1]

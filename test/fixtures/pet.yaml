@@ -42,11 +42,11 @@ components:
     ApiKeyAuth:
       type: apiKey
       in: header
-      name: X-API-Key
+      name: header_key
     ApiKeyAuthQuery:
       type: apiKey
       in: query
-      name: X-API-Key
+      name: query_key
     JWTKeyAuth:
       type: http
       scheme: bearer
